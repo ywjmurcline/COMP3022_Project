@@ -7,91 +7,106 @@
 #include <functional>
 #include <limits>
 #include <cassert>
+#include <fstream>
 
 using namespace std;
 
-// Constants for bias correction
-double getAlphaM(int m) {
-    if (m == 16) return 0.673;
-    else if (m == 32) return 0.697;
-    else if (m == 64) return 0.709;
-    else return 0.7213 / (1 + 1.079 / m);
-}
 
-// Function to get the position of the leftmost 1-bit in a binary string
-int rho(const string& w) {
-    for (size_t i = 0; i < w.size(); ++i) {
-        if (w[i] == '1') return i + 1;
-    }
-    return w.size() + 1;
-}
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <string>
+#include <functional>
+#include <bitset>
+#include <cassert>
+#include <limits>
 
-// Main HyperLogLog function
-double hyperloglog(const vector<string>& data, int b) {
-    assert(b > 0);
-    int m = 1 << b; // m = 2^b
-    cout << "m: " << m << endl;
-
-    vector<int> M(m, numeric_limits<int>::min());
-
-    cout << "M: " << endl;
-    for (const auto& str : M) {
-        std::cout << str << std::endl;
+class HyperLogLog {
+public:
+    explicit HyperLogLog(uint32_t b) : b_(b), m_(1 << b), registers_(m_, 0) {
+        assert(b_ >= 4 && b_ <= 16);
+        alphaMM_ = getAlphaMM(m_);
     }
 
-    hash<string> hasher;
-
-    for (const auto& v : data) {
-        // Hash the input item to a 64-bit value
-
-        cout << "v: " << v << endl;
-        size_t x = hasher(v);
-
-        cout << "x: " << x << endl;
-
-        // Convert to binary string
-        bitset<64> bits(x);
-        string bin = bits.to_string();
-
-        cout << "bin: " << bin << endl;
-
-        // First b bits determine the register index j
-        string j_str = bin.substr(0, b);
-        cout << "j_str: " << j_str << endl;
-        int j = 1 + stoi(j_str, nullptr, 2);
-        cout << "j: " << j << endl;
-
-        // Remaining bits are used to compute ρ(w)
-        string w = bin.substr(b);
-        cout << "w: " << w << endl;
-        int r = rho(w);
-        cout << "r: " << r << endl;
-
-        // Update register
-        M[j] = max(M[j], r);
+    void add(const std::string& item) {
+        uint32_t hash = hash32(item);
+        uint32_t index = hash >> (32 - b_);                      // First b bits
+        uint32_t w = hash << b_;                                 // Remaining bits
+        uint8_t rank = countLeadingZeros(w) + 1;
+        registers_[index] = std::max(registers_[index], rank);
     }
 
-    // Compute indicator function Z
-    double Z = 0.0;
-    for (int j = 0; j < m; ++j) {
-        Z += pow(2.0, -M[j]);
-    }
-    Z = 1.0 / Z;
+    double estimate() const {
+        // Harmonic mean of 2^-Ri
+        double sum = 0.0;
+        for (uint8_t r : registers_) {
+            sum += 1.0 / (1ULL << r);
+        }
 
-    // Apply the HyperLogLog estimator
-    double alpha_m = getAlphaM(m);
-    double E = alpha_m * m * m * Z;
-    return E;
-}
+        double rawEstimate = alphaMM_ / sum;
+
+        // Small range correction (Linear Counting)
+        if (rawEstimate <= 2.5 * m_) {
+            uint32_t V = std::count(registers_.begin(), registers_.end(), 0);
+            if (V != 0) {
+                return m_ * std::log(static_cast<double>(m_) / V);
+            }
+        }
+
+        // Large range correction
+        if (rawEstimate > (1ULL << 32) / 30.0) {
+            return -static_cast<double>(1ULL << 32) *
+                   std::log(1.0 - (rawEstimate / (1ULL << 32)));
+        }
+
+        return rawEstimate;
+    }
+
+private:
+    uint32_t b_;
+    uint32_t m_;
+    double alphaMM_;
+    std::vector<uint8_t> registers_;
+
+    static double getAlphaMM(uint32_t m) {
+        switch (m) {
+            case 16:  return 0.673 * m * m;
+            case 32:  return 0.697 * m * m;
+            case 64:  return 0.709 * m * m;
+            default:  return (0.7213 / (1.0 + 1.079 / m)) * m * m;
+        }
+    }
+
+    static uint8_t countLeadingZeros(uint32_t x) {
+        if (x == 0) return 32;
+        return __builtin_clz(x);
+    }
+
+    static uint32_t hash32(const std::string& s) {
+        std::hash<std::string> hasher;
+        return static_cast<uint32_t>(hasher(s));  // Truncate to 32-bit
+    }
+};
+
 
 int main() {
-    // Sample dataset (simulate multiset input)
-    vector<string> dataset = {"apple", "banana", "orange", "apple", "grape", "banana", "kiwi", "pineapple", "strawberry", "pear", "durian"};
+    HyperLogLog hll(12); // m = 2^12 = 4096 registers
 
-    int b = 1; // log2(m), where m is the number of registers (e.g., m = 16)
-    double estimate = hyperloglog(dataset, b);
+    // string txt_path = "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/dataset/demo/output.txt";
+    string txt_path = "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/dataset/cleaned/NCVoters/ncvoter_all.txt";
+    std::ifstream file(txt_path);
+    std::vector<std::string> strings;
+    std::string line;
 
-    cout << "Estimated cardinality: " << estimate << endl;
+    while (std::getline(file, line)) {
+        strings.push_back(line);
+    }
 
+    for (const auto& str : strings) {
+        hll.add(str);
+    }
+
+
+    std::cout << "Estimated cardinality: " << hll.estimate() << std::endl;
     return 0;
 }

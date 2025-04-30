@@ -12,6 +12,7 @@
 #include <chrono>
 #include <mach/mach.h>
 #include <iomanip>
+#include <thread>
 
 using namespace std;
 
@@ -133,89 +134,6 @@ using namespace std;
 // };
 
 
-// class FlajoletMartin {
-// public:
-//     explicit FlajoletMartin(size_t m)
-//         : m_(m), seeds_(m), bitmaps_(m, 0) {
-//         assert(m > 0);
-//         initSeeds();
-//     }
-
-//     void add(const std::string& item) {
-//         addBatch({item});
-//     }
-
-//     void addBatch(const std::vector<std::string>& items) {
-//         const size_t num_threads = std::min((int)m_, (int)std::thread::hardware_concurrency());
-//         std::vector<std::thread> threads;
-
-//         auto worker = [&](size_t start, size_t end) {
-//             for (size_t i = start; i < end; ++i) {
-//                 for (const auto& item : items) {
-//                     size_t h = hashWithSeed(item, seeds_[i]);
-//                     uint32_t r = rank(h);
-//                     if (r < 64) {
-//                         uint64_t mask = 1ULL << r;
-//                         bitmaps_[i] |= mask;  // No race: i is thread-private
-//                     }
-//                 }
-//             }
-//         };
-
-//         size_t chunk_size = (m_ + num_threads - 1) / num_threads;
-//         for (size_t t = 0; t < num_threads; ++t) {
-//             size_t start = t * chunk_size;
-//             size_t end = std::min(start + chunk_size, m_);
-//             if (start < end) {
-//                 threads.emplace_back(worker, start, end);
-//             }
-//         }
-
-//         for (auto& th : threads) {
-//             th.join();
-//         }
-//     }
-
-//     double estimate() const {
-//         double Z = 0.0;
-//         for (uint64_t bitmap : bitmaps_) {
-//             uint32_t R = firstZeroBit(bitmap);
-//             Z += std::pow(2.0, R);
-//         }
-//         return Z / m_;
-//     }
-
-// private:
-//     size_t m_;
-//     std::vector<uint64_t> seeds_;
-//     std::vector<uint64_t> bitmaps_;
-
-//     void initSeeds() {
-//         std::mt19937_64 rng(1337);
-//         std::uniform_int_distribution<uint64_t> dist;
-//         for (auto& s : seeds_) {
-//             s = dist(rng);
-//         }
-//     }
-
-//     static uint32_t rank(size_t x) {
-//         return x ? __builtin_ctzll(x) : 64;
-//     }
-
-//     static uint32_t firstZeroBit(uint64_t bitmap) {
-//         for (uint32_t i = 0; i < 64; ++i) {
-//             if ((bitmap & (1ULL << i)) == 0)
-//                 return i;
-//         }
-//         return 64;
-//     }
-
-//     static size_t hashWithSeed(const std::string& s, uint64_t seed) {
-//         std::hash<std::string> hasher;
-//         return hasher(std::to_string(seed) + s);
-//     }
-// };
-
 
 class FlajoletMartin {
 public:
@@ -230,20 +148,34 @@ public:
     }
 
     void addBatch(const std::vector<std::string>& items) {
-        for (const auto& it : items) {
-            for (size_t i = 0; i < m_; ++i) {
-                size_t h = hashWithSeed(it, seeds_[i]);
-                uint32_t r = rank(h);
-                
-                if (r < 64) {  // Cap to bitmap size
-                    bitmaps_[i] |= (1ULL << r);
+        const size_t num_threads = std::min((int)m_, (int)std::thread::hardware_concurrency());
+        std::vector<std::thread> threads;
+
+        auto worker = [&](size_t start, size_t end) {
+            for (size_t i = start; i < end; ++i) {
+                for (const auto& item : items) {
+                    size_t h = hashWithSeed(item, seeds_[i]);
+                    uint32_t r = rank(h);
+                    if (r < 64) {
+                        uint64_t mask = 1ULL << r;
+                        bitmaps_[i] |= mask;  // No race: i is thread-private
+                    }
                 }
-                // cout << "r: " << r << endl;
-                // std::cout << "bitmap: " <<  (1ULL << r) << std::endl;
-        
+            }
+        };
+
+        size_t chunk_size = (m_ + num_threads - 1) / num_threads;
+        for (size_t t = 0; t < num_threads; ++t) {
+            size_t start = t * chunk_size;
+            size_t end = std::min(start + chunk_size, m_);
+            if (start < end) {
+                threads.emplace_back(worker, start, end);
             }
         }
 
+        for (auto& th : threads) {
+            th.join();
+        }
     }
 
     double estimate() const {
@@ -285,6 +217,7 @@ private:
         return hasher(std::to_string(seed) + s);
     }
 };
+
 
 
 size_t getMemoryUsage() {

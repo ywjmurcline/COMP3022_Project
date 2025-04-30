@@ -12,30 +12,16 @@
 #include <chrono>
 #include <mach/mach.h>
 #include <iomanip>
+#include <thread>
 
 using namespace std;
 
-std::string size_t_to_binary(size_t n) {
-    std::string binary_string;
-    if (n == 0) {
-        binary_string = "0";
-    } else {
-        while (n > 0) {
-            binary_string += (n % 2 == 0 ? '0' : '1');
-            n /= 2;
-        }
-        std::reverse(binary_string.begin(), binary_string.end());
-    }
-    return binary_string;
-}
-
-
-
-class PCSA {
+class AMS {
 public:
-    explicit PCSA(size_t m)
-        : m_(m), log2m_(std::log2(m_)), bitmaps_(m, 0) {
-        assert(m > 0); // m must be power of 2
+    explicit AMS(size_t m)
+        : m_(m), seeds_(m), Z_(m, 0) {
+        assert(m > 0);
+        initSeeds();
     }
 
     void add(const std::string& item) {
@@ -43,74 +29,74 @@ public:
     }
 
     void addBatch(const std::vector<std::string>& items) {
-        for (const auto& item : items) {
-            size_t h = hash(item);
-            size_t idx = h >> (64 - log2m_); // use top bits to choose bitmap
-            // cout << "idx:  " << idx << endl;
+        const size_t num_threads = std::min((int)m_, (int)std::thread::hardware_concurrency());
+        std::vector<std::thread> threads;
 
-            // size_t remaining = (h << log2m_); // discard used top bits
-            size_t remaining = h & ((1ULL << (64 - log2m_)) - 1);
-            // cout << "remaining:  " << size_t_to_binary(remaining) << endl;
-
-            uint32_t r = rank(remaining);
-            // cout << "r:  " << r << endl;
-            if (r < 64) {
-                bitmaps_[idx] |= (1ULL << r);
+        auto worker = [&](size_t start, size_t end) {
+            for (size_t i = start; i < end; ++i) {
+                for (const auto& item : items) {
+                    size_t h = hashWithSeed(item, seeds_[i]);
+                    uint32_t r = rank(h);
+        
+                    Z_[i] = std::max(r, Z_[i]);
+                }
             }
-            // cout << "remaining:  " << size_t_to_binary(bitmaps_[idx]) << endl;
+        };
 
-            // cout << bitmaps_[idx] << endl;
-            // for (uint32_t i = 0; i < 64; ++i) {
-            //     if ((bitmaps_[idx] & (1ULL << i)) == 0)
-            //         cout << "immediate i: " << i << endl;
-            // }
+        size_t chunk_size = (m_ + num_threads - 1) / num_threads;
+        for (size_t t = 0; t < num_threads; ++t) {
+            size_t start = t * chunk_size;
+            size_t end = std::min(start + chunk_size, m_);
+            if (start < end) {
+                threads.emplace_back(worker, start, end);
+            }
         }
+
+        for (auto& th : threads) {
+            th.join();
+        }
+
 
     }
 
     double estimate() const {
-        double sum_R = 0.0;
-        for (uint64_t bitmap : bitmaps_) {
-            // cout << "bitmap: " << bitmap << endl;
-            uint32_t R = firstZeroBit(bitmap);
-            // cout << "R:  " << R << endl;
-            sum_R += R;
-            // cout << "sum_R:  " << sum_R << endl;
+        double average = 0;
+        for (double z : Z_) {
+            average += z;
         }
-
-        double R_avg = sum_R / static_cast<double>(m_);
-        return (m_ / PHI) * std::pow(2.0, R_avg);
+        average /= m_;
+        return std::pow(2.0, average);
     }
 
 private:
-    static constexpr double PHI = 0.77351;
     size_t m_;
-    uint32_t log2m_;
-    std::vector<uint64_t> bitmaps_;
+    std::vector<uint64_t> seeds_;
+    std::vector<uint32_t> Z_;  // Accumulators per sketch
 
-    static size_t hash(const std::string& s) {
-        std::hash<std::string> hasher;
-        return hasher(s);
+    void initSeeds() {
+        std::mt19937_64 rng(424242);
+        std::uniform_int_distribution<uint64_t> dist;
+        for (auto& s : seeds_) {
+            s = dist(rng);
+        }
     }
 
     static uint32_t rank(size_t x) {
-        return x ? __builtin_ctzll(x): 64;
+        return x ? __builtin_ctzll(x) : 64;
     }
 
-    static uint32_t firstZeroBit(uint64_t bitmap) {
-        for (uint32_t i = 0; i < 64; ++i) {
-            if ((bitmap & (1ULL << i)) == 0)
-                return i;
-        }
-        return 64;
+
+    static size_t hashWithSeed(const std::string& s, uint64_t seed) {
+        std::hash<std::string> hasher;
+        return hasher(std::to_string(seed) + s);
     }
 
-    // static size_t nextPowerOfTwo(size_t n) {
-    //     size_t p = 1;
-    //     while (p < n) p <<= 1;
-    //     return p;
-    // }
+    static uint32_t msb(uint64_t x) {
+        if (x == 0) return 0;
+        return 63 - __builtin_clzll(x);
+    }
 };
+
 
 size_t getMemoryUsage() {
     task_basic_info info;
@@ -121,12 +107,11 @@ size_t getMemoryUsage() {
     return info.resident_size; // in bytes
 }
 
-
 int main() {
     // size_t m = 5;  // registers per group
     // size_t L = 5;   // number of groups
 
-    PCSA fm(64);
+    AMS fm(64);
 
     // for (int i = 0; i < 100000; ++i) {
     //     fm.add("user_" + std::to_string(i));
