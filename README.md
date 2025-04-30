@@ -6,3 +6,4 @@ This project aims to reproduce some of the classic cardinality estimation algori
 Run experiment by:
 ```
 ```
+g++ -std=c++11 -O2 hyperloglog.cpp hash/murmurhash.cpp -o hyperloglog
