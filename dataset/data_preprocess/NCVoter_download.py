@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
 
-DOWNLOAD_FOLDER = "../.temp"
+DOWNLOAD_FOLDER = '../download/NCVoters'
 
 # Create download folder if it doesn't exist
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)

@@ -3,7 +3,7 @@ import os
 import shutil
 
 # Set your target folder
-ZIP_FOLDER = '../.temp'
+ZIP_FOLDER = '../download/NCVoters'
 DISTINATION = '../raw/NCVoters'
 
 os.makedirs(DISTINATION, exist_ok=True)
@@ -21,7 +21,7 @@ for filename in os.listdir(ZIP_FOLDER):
 
 print("All ZIP files extracted.")
 
-if input("Remove .temp?") == "y":
+if input("Remove download?") == "y":
     shutil.rmtree(ZIP_FOLDER)
     print("All zip file deleted.")
 

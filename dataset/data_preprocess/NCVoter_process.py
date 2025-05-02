@@ -1,5 +1,6 @@
 import os
 import shutil
+from utils.profile_dataset import profile_folder
 
 # Set your target folder
 FOLDER_FOLDER = '../raw/NCVoters'
@@ -39,7 +40,12 @@ for i in range(0, 100):
     if os.path.isfile(file_path):
         extract_third_elements(file_path, output_file_path)
 
-with open(os.path.join(DISTINATION, "flag.txt"), 'a') as flagfile:
+# Profile the folder
+profile_folder(DISTINATION)
+print("Done profiling.")
+
+# Create a flag file to indicate completion
+with open(os.path.join(DISTINATION, "flag"), 'a') as flagfile:
     flagfile.write("1")
 
 print("DONE!")
