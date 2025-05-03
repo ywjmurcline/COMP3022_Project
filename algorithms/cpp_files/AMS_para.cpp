@@ -18,8 +18,8 @@ using namespace std;
 
 class AMS {
 public:
-    explicit AMS(size_t m)
-        : m_(m), seeds_(m), Z_(m, 0) {
+    explicit AMS(size_t m, size_t parallel)
+        : m_(m), seeds_(m),  parallel(parallel), Z_(m, 0) {
         assert(m > 0);
         initSeeds();
     }
@@ -28,8 +28,15 @@ public:
         addBatch({item});
     }
 
-    void addBatch(const std::vector<std::string>& items) {
-        const size_t num_threads = std::min((int)m_, (int)std::thread::hardware_concurrency());
+    size_t addBatch(const std::vector<std::string>& items) {
+        size_t num_threads;
+        if (parallel == 0) {
+            num_threads = std::min((int)m_, (int)std::thread::hardware_concurrency());
+        }
+        else {
+            num_threads = parallel;
+        }
+       
         std::vector<std::thread> threads;
 
         auto worker = [&](size_t start, size_t end) {
@@ -55,7 +62,7 @@ public:
         for (auto& th : threads) {
             th.join();
         }
-
+        return num_threads;
 
     }
 
@@ -72,6 +79,7 @@ private:
     size_t m_;
     std::vector<uint64_t> seeds_;
     std::vector<uint32_t> Z_;  // Accumulators per sketch
+    size_t parallel;
 
     void initSeeds() {
         std::mt19937_64 rng(424242);
@@ -122,15 +130,16 @@ size_t calculateMemoryUsage(const std::vector<std::string>& vec) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
+    if (argc != 4) {
         std::cerr << "Usage: " << argv[0] << " <num_registers> <data_string>\n";
         return 1;
     }
 
     size_t m = std::stoull(argv[1]);
     std::string txt_path = argv[2];
+    size_t parallel = std::stoull(argv[3]);
 
-    AMS ams(m);
+    AMS ams(m, parallel);
 
     // string txt_path = "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/dataset/demo/output.txt";
     // string txt_path = "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/dataset/cleaned/NCVoters/ncvoter_all.txt";
@@ -143,7 +152,7 @@ int main(int argc, char* argv[]) {
     }
 
     auto start = std::chrono::high_resolution_clock::now();
-    ams.addBatch(strings);
+    size_t parallel = ams.addBatch(strings);
     auto end = std::chrono::high_resolution_clock::now();
 
     std::chrono::duration<double> duration = end - start;
@@ -155,5 +164,6 @@ int main(int argc, char* argv[]) {
     size_t mem = getMemoryUsage();
     size_t vec_mem = calculateMemoryUsage(strings);
     std::cout << "Memory usage: " << (mem - vec_mem) / (1024.0 * 1024.0) << " MB\n";
+    std::cout << "Number of threads used: " << parallel << "\n";
     return 0;
 }

@@ -12,16 +12,21 @@
 #include <chrono>
 #include <mach/mach.h>
 #include <iomanip>
+#include "hash/LinearHash.hpp"
+#include "hash/MurmurHash2.hpp"
+#include "hash/FNV.hpp"
+#include <functional>
 
 using namespace std;
 
 
 class FlajoletMartin {
 public:
-    explicit FlajoletMartin(size_t m)
+    explicit FlajoletMartin(size_t m, string hash_type)
         : m_(m), seeds_(m), bitmaps_(m, 0) {
         assert(m > 0);
         initSeeds();
+        initHash(hash_type);
     }
 
     void add(const std::string& item) {
@@ -37,12 +42,8 @@ public:
                 if (r < 64) {  // Cap to bitmap size
                     bitmaps_[i] |= (1ULL << r);
                 }
-                // cout << "r: " << r << endl;
-                // std::cout << "bitmap: " <<  (1ULL << r) << std::endl;
-        
             }
         }
-
     }
 
     double estimate() const {
@@ -58,6 +59,7 @@ private:
     size_t m_;
     std::vector<uint64_t> seeds_;
     std::vector<uint64_t> bitmaps_;
+    std::function<size_t(const std::string&, uint64_t)> hashWithSeed;
 
     void initSeeds() {
         std::mt19937_64 rng(1337);
@@ -66,6 +68,42 @@ private:
             s = dist(rng);
         }
     }
+
+
+    // Initialize based on choice parameter (0–3)
+    void initHash(string hash_type) {
+        if (hash_type == "murmurhash2") {
+            hashWithSeed = &FlajoletMartin::murmurhash2;
+            cout << "Using self-implemented MurmurHash2" << endl;
+        } else if (hash_type == "fnv1a") {
+            hashWithSeed = &FlajoletMartin::fnv1a;
+            cout << "Using self-implemented fnv1a" << endl;
+        } else if (hash_type == "linearhash") {
+            hashWithSeed = &FlajoletMartin::linearhash;
+            cout << "Using self-implemented linearhash" << endl;
+        } else {
+            hashWithSeed = &FlajoletMartin::murmurhash_cpp;
+            cout << "Using C++ MurmurHash2" << endl;
+        }
+    }
+
+    static size_t murmurhash2(const std::string& s, uint64_t seed) {
+        MurmurHash2_64 hasher;
+        return hasher(std::to_string(seed) + s);
+    }
+    static size_t fnv1a(const std::string& s, uint64_t seed) {
+        FNV1aHash64 hasher;
+        return hasher(std::to_string(seed) + s);
+    }
+    static size_t linearhash(const std::string& s, uint64_t seed) {
+        LinearHash hasher;
+        return hasher(std::to_string(seed) + s);
+    }
+    static size_t murmurhash_cpp(const std::string& s, uint64_t seed) {
+        std::hash<std::string> hasher;
+        return hasher(std::to_string(seed) + s);
+    }
+
 
     static uint32_t rank(size_t x) {
         return x ? __builtin_ctzll(x) : 64;
@@ -110,16 +148,17 @@ size_t calculateMemoryUsage(const std::vector<std::string>& vec) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
+    if (argc != 4) {
         std::cerr << "Usage: " << argv[0] << " <num_registers> <data_string>\n";
         return 1;
     }
 
     size_t m = std::stoull(argv[1]);
-    std::string txt_path = argv[2];
+    std::string hash_type = argv[2];
+    std::string txt_path = argv[3];
 
 
-    FlajoletMartin fm(m);
+    FlajoletMartin fm(m, hash_type);
 
 
     // string txt_path = "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/dataset/cleaned/NCVoters/ncvoter_all.txt";

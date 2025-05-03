@@ -12,15 +12,21 @@
 #include <chrono>
 #include <mach/mach.h>
 #include <iomanip>
+#include <cstdint>
+#include "hash/LinearHash.hpp"
+#include "hash/MurmurHash2.hpp"
+#include "hash/FNV.hpp"
+#include <functional>
 
 using namespace std;
 
 class AMS {
 public:
-    explicit AMS(size_t m)
+    explicit AMS(size_t m, string hash_type)
         : m_(m), seeds_(m), Z_(m, 0) {
         assert(m > 0);
         initSeeds();
+        initHash(hash_type);
     }
 
     void add(const std::string& item) {
@@ -51,6 +57,7 @@ private:
     size_t m_;
     std::vector<uint64_t> seeds_;
     std::vector<uint32_t> Z_;  // Accumulators per sketch
+    std::function<size_t(const std::string&, uint64_t)> hashWithSeed;
 
     void initSeeds() {
         std::mt19937_64 rng(424242);
@@ -60,19 +67,42 @@ private:
         }
     }
 
+    // Initialize based on choice parameter (0–3)
+    void initHash(string hash_type) {
+        if (hash_type == "murmurhash2") {
+            hashWithSeed = &AMS::murmurhash2;
+            cout << "Using self-implemented MurmurHash2" << endl;
+        } else if (hash_type == "fnv1a") {
+            hashWithSeed = &AMS::fnv1a;
+            cout << "Using self-implemented fnv1a" << endl;
+        } else if (hash_type == "linearhash") {
+            hashWithSeed = &AMS::linearhash;
+            cout << "Using self-implemented linearhash" << endl;
+        } else {
+            hashWithSeed = &AMS::murmurhash_cpp;
+            cout << "Using C++ MurmurHash2" << endl;
+        }
+    }
+
     static uint32_t rank(size_t x) {
         return x ? __builtin_ctzll(x) : 64;
     }
 
-
-    static size_t hashWithSeed(const std::string& s, uint64_t seed) {
-        std::hash<std::string> hasher;
+    static size_t murmurhash2(const std::string& s, uint64_t seed) {
+        MurmurHash2_64 hasher;
         return hasher(std::to_string(seed) + s);
     }
-
-    static uint32_t msb(uint64_t x) {
-        if (x == 0) return 0;
-        return 63 - __builtin_clzll(x);
+    static size_t fnv1a(const std::string& s, uint64_t seed) {
+        FNV1aHash64 hasher;
+        return hasher(std::to_string(seed) + s);
+    }
+    static size_t linearhash(const std::string& s, uint64_t seed) {
+        LinearHash hasher;
+        return hasher(std::to_string(seed) + s);
+    }
+    static size_t murmurhash_cpp(const std::string& s, uint64_t seed) {
+        std::hash<std::string> hasher;
+        return hasher(std::to_string(seed) + s);
     }
 };
 
@@ -101,15 +131,16 @@ size_t calculateMemoryUsage(const std::vector<std::string>& vec) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " <num_registers> <data_string>\n";
+    if (argc != 4) {
+        std::cerr << "Usage: " << argv[0] << " <num_registers> <hash_type> <input_path>\n";
         return 1;
     }
 
     size_t m = std::stoull(argv[1]);
-    std::string txt_path = argv[2];
+    std::string hash_type = argv[2];
+    std::string txt_path = argv[3];
 
-    AMS ams(m);
+    AMS ams(m, hash_type);
 
     
     std::ifstream file(txt_path);
@@ -119,7 +150,6 @@ int main(int argc, char* argv[]) {
     while (std::getline(file, line)) {
         strings.push_back(line);
     }
-
 
     auto start = std::chrono::high_resolution_clock::now();
     ams.addBatch(strings);
@@ -131,9 +161,6 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Estimated cardinality: " << ams.estimate() << "\n";
 
-    // Approximate memory usage
-    // size_t memory_bytes = m * (sizeof(uint64_t) /* bitmap */ + sizeof(uint64_t) /* seed */);
-    // std::cout << "Approx. memory usage: " << memory_bytes / 1024.0 << " KB\n";
     size_t mem = getMemoryUsage();
     size_t vec_mem = calculateMemoryUsage(strings);
     std::cout << "Memory usage: " << (mem - vec_mem) / (1024.0 * 1024.0) << " MB\n";

@@ -10,17 +10,22 @@
 #include <fstream>
 #include <mach/mach.h>
 #include <iomanip>
-
+#include "hash/LinearHash.hpp"
+#include "hash/MurmurHash2.hpp"
+#include "hash/FNV.hpp"
+#include <functional>
 
 using namespace std;
 
 
 class HyperLogLog {
 public:
-    explicit HyperLogLog(uint32_t m) : m_(m), b_(std::log2(m)), registers_(m_, 0) {
+    explicit HyperLogLog(uint32_t m, std::string hash_type) 
+    : m_(m), b_(std::log2(m)), registers_(m_, 0) {
         // assert(b_ >= 4 && b_ <= 16);
         assert(m_ >= 16 && m_ <= 239755970);
         alphaMM_ = getAlphaMM(m_);
+        initHash(hash_type);
     }
 
 
@@ -28,19 +33,12 @@ public:
         addBatch({item});
     }
 
-    // void add(const std::string& item) {
-    //     uint32_t hash = hash32(item);
-    //     uint32_t index = hash >> (32 - b_);                      // First b bits
-    //     uint32_t w = hash << b_;                                 // Remaining bits
-    //     uint8_t rank = countLeadingZeros(w) + 1;
-    //     registers_[index] = std::max(registers_[index], rank);
-    // }
 
     void addBatch(const std::vector<std::string>& items) {
         for (const auto& item : items) {
-            uint32_t hash = hash32(item);
-            uint32_t index = hash >> (32 - b_);                      // First b bits
-            uint32_t w = hash << b_;                                 // Remaining bits
+            uint32_t h = hash(item);
+            uint32_t index = h >> (32 - b_);                      // First b bits
+            uint32_t w = h << b_;                                 // Remaining bits
             uint8_t rank = countLeadingZeros(w) + 1;
             registers_[index] = std::max(registers_[index], rank);
         }
@@ -77,6 +75,7 @@ private:
     uint32_t m_;
     double alphaMM_;
     std::vector<uint8_t> registers_;
+    std::function<size_t(const std::string&)> hash;
 
     static double getAlphaMM(uint32_t m) {
         switch (m) {
@@ -87,15 +86,45 @@ private:
         }
     }
 
+    // Initialize based on choice parameter (0–3)
+    void initHash(string hash_type) {
+        if (hash_type == "murmurhash2") {
+            hash = &HyperLogLog::murmurhash2;
+            cout << "Using self-implemented MurmurHash2" << endl;
+        } else if (hash_type == "fnv1a") {
+            hash = &HyperLogLog::fnv1a;
+            cout << "Using self-implemented fnv1a" << endl;
+        } else if (hash_type == "linearhash") {
+            hash = &HyperLogLog::linearhash;
+            cout << "Using self-implemented linearhash" << endl;
+        } else {
+            hash = &HyperLogLog::murmurhash_cpp;
+            cout << "Using C++ MurmurHash2" << endl;
+        }
+    }
+
+    static size_t murmurhash2(const std::string& s) {
+        MurmurHash2_64 hasher;
+        return hasher(s);
+    }
+    static size_t fnv1a(const std::string& s) {
+        FNV1aHash64 hasher;
+        return hasher(s);
+    }
+    static size_t linearhash(const std::string& s) {
+        LinearHash hasher;
+        return hasher(s);
+    }
+    static size_t murmurhash_cpp(const std::string& s) {
+        std::hash<std::string> hasher;
+        return hasher(s);
+    }
+
     static uint8_t countLeadingZeros(uint32_t x) {
         if (x == 0) return 32;
         return __builtin_clz(x);
     }
 
-    static uint32_t hash32(const std::string& s) {
-        std::hash<std::string> hasher;
-        return static_cast<uint32_t>(hasher(s));  // Truncate to 32-bit
-    }
 };
 
 
@@ -124,16 +153,17 @@ size_t calculateMemoryUsage(const std::vector<std::string>& vec) {
 
 
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
+    if (argc != 4) {
         std::cerr << "Usage: " << argv[0] << " <num_registers> <data_string>\n";
         return 1;
     }
 
     size_t m = std::stoull(argv[1]);
-    std::string txt_path = argv[2];
+    std::string hash_type = argv[2];
+    std::string txt_path = argv[3];
 
 
-    HyperLogLog hll(m); // m = 2^12 = 4096 registers
+    HyperLogLog hll(m, hash_type); // m = 2^12 = 4096 registers
 
     // string txt_path = "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/dataset/demo/output.txt";
     // string txt_path = "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/dataset/cleaned/NCVoters/ncvoter_all.txt";
@@ -155,8 +185,6 @@ int main(int argc, char* argv[]) {
     std::chrono::duration<double> duration = end - start;
     std::cout << "FM addBatch time: " << std::fixed << std::setprecision(6)
               << duration.count() << " seconds\n";
-
-
 
     std::cout << "Estimated cardinality: " << hll.estimate() << std::endl;
     

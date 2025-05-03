@@ -1,20 +1,15 @@
 import subprocess
 import re
-
-# Strict regex patterns
-time_pattern = re.compile(r'^FM addBatch time: ([0-9]+\.[0-9]+) seconds$')
-cardinality_pattern = re.compile(r'^Estimated cardinality: ([0-9]+\.[0-9]+)$')
-memory_pattern = re.compile(r'^Memory usage: ([0-9]+\.[0-9]+) MB$')
+from utils import parse_output_std
 
 executables = [
     "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/algorithms/executable/fm", 
-    # "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/algorithms/executable/fm_para", 
     "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/algorithms/executable/PCSA", 
     "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/algorithms/executable/AMS", 
-    # "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/algorithms/executable/AMS_para", 
     "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/algorithms/executable/hyperloglog"]
 
-# Define your parameter sets here: (number, string)
+
+
 parameter_sets = [
     (64, "1359916", "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/dataset/cleaned/NCVoters/ncvoter_1_20.txt"),
     (64, "3065243", "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/dataset/cleaned/NCVoters/ncvoter_1_40.txt"),

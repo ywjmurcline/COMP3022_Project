@@ -16,129 +16,10 @@
 
 using namespace std;
 
-
-// class FlajoletMartin {
-// public:
-//     explicit FlajoletMartin(size_t m)
-//         : m_(m), seeds_(m), registers_(m, 0) {
-//         assert(m > 0);
-//         initSeeds();
-//     }
-
-//     void add(const std::string& item) {
-//         for (size_t i = 0; i < m_; ++i) {
-//             size_t h = hashWithSeed(item, seeds_[i]);
-//             uint32_t r = rank(h);
-//             registers_[i] = std::max(registers_[i], r);
-//         }
-//     }
-
-//     double estimate() const {
-//         double Z = 0.0;
-//         for (uint32_t r : registers_) {
-//             Z += std::pow(2.0, static_cast<int>(r));
-//         }
-//         return Z / m_;
-//     }
-
-// private:
-//     size_t m_;
-//     std::vector<uint64_t> seeds_;
-//     std::vector<uint32_t> registers_;
-
-//     void initSeeds() {
-//         std::mt19937_64 rng(42);
-//         std::uniform_int_distribution<uint64_t> dist;
-//         for (auto& s : seeds_) {
-//             s = dist(rng);
-//         }
-//         std::cout << "seed_: ";
-//         for (const auto& seed : seeds_) {
-//             std::cout << seed << " ";
-//         }
-//         std::cout << std::endl;
-//     }
-
-//     static uint32_t rank(size_t x) {
-//         // cout << "rank: " << (x ? __builtin_ctzll(x) + 1 : 0) << endl;
-//         return x ? __builtin_ctzll(x) + 1 : 0;
-//     }
-
-//     static size_t hashWithSeed(const std::string& s, uint64_t seed) {
-//         std::hash<std::string> hasher;
-//         return hasher(std::to_string(seed) + s);
-//     }
-// };
-
-
-// class FlajoletMartin {
-// public:
-//     explicit FlajoletMartin(size_t m)
-//         : m_(m), seeds_(m), bitmaps_(m, 0) {
-//         assert(m > 0);
-//         initSeeds();
-//     }
-
-//     void add(const std::string& item) {
-//         for (size_t i = 0; i < m_; ++i) {
-//             size_t h = hashWithSeed(item, seeds_[i]);
-//             uint32_t r = rank(h);
-            
-//             if (r < 64) {  // Cap to bitmap size
-//                 bitmaps_[i] |= (1ULL << r);
-//             }
-//             cout << "r: " << r << endl;
-//             std::cout << "bitmap: " <<  (1ULL << r) << std::endl;
-
-//         }
-//     }
-
-//     double estimate() const {
-//         double Z = 0.0;
-//         for (uint64_t bitmap : bitmaps_) {
-//             uint32_t R = firstZeroBit(bitmap);
-//             Z += std::pow(2.0, R);
-//         }
-//         return Z / m_;
-//     }
-
-// private:
-//     size_t m_;
-//     std::vector<uint64_t> seeds_;
-//     std::vector<uint64_t> bitmaps_;  // Each is a 64-bit bitmap
-
-//     void initSeeds() {
-//         std::mt19937_64 rng(1337);
-//         std::uniform_int_distribution<uint64_t> dist;
-//         for (auto& s : seeds_) {
-//             s = dist(rng);
-//         }
-//     }
-
-//     static uint32_t rank(size_t x) {
-//         return x ? __builtin_ctzll(x) : 64;  // 64 is "off the map"
-//     }
-
-//     static uint32_t firstZeroBit(uint64_t bitmap) {
-//         for (uint32_t i = 0; i < 64; ++i) {
-//             if ((bitmap & (1ULL << i)) == 0)
-//                 return i;
-//         }
-//         return 64;  // Fully saturated
-//     }
-
-//     static size_t hashWithSeed(const std::string& s, uint64_t seed) {
-//         std::hash<std::string> hasher;
-//         return hasher(std::to_string(seed) + s);
-//     }
-// };
-
-
-
 class FlajoletMartin {
 public:
-    explicit FlajoletMartin(size_t m)
-        : m_(m), seeds_(m), bitmaps_(m, 0) {
+    explicit FlajoletMartin(size_t m, size_t parallel)
+        : m_(m), seeds_(m), parallel(parallel), bitmaps_(m, 0) {
         assert(m > 0);
         initSeeds();
     }
@@ -147,8 +28,15 @@ public:
         addBatch({item});
     }
 
-    void addBatch(const std::vector<std::string>& items) {
-        const size_t num_threads = std::min((int)m_, (int)std::thread::hardware_concurrency());
+    size_t addBatch(const std::vector<std::string>& items) {
+        size_t num_threads;
+        if (parallel == 0) {
+            num_threads = std::min((int)m_, (int)std::thread::hardware_concurrency());
+        }
+        else {
+            num_threads = parallel;
+        }
+
         std::vector<std::thread> threads;
 
         auto worker = [&](size_t start, size_t end) {
@@ -176,6 +64,8 @@ public:
         for (auto& th : threads) {
             th.join();
         }
+
+        return num_threads;
     }
 
     double estimate() const {
@@ -191,6 +81,7 @@ private:
     size_t m_;
     std::vector<uint64_t> seeds_;
     std::vector<uint64_t> bitmaps_;
+    size_t parallel;
 
     void initSeeds() {
         std::mt19937_64 rng(1337);
@@ -245,16 +136,17 @@ size_t calculateMemoryUsage(const std::vector<std::string>& vec) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
+    if (argc != 4) {
         std::cerr << "Usage: " << argv[0] << " <num_registers> <data_string>\n";
         return 1;
     }
 
     size_t m = std::stoull(argv[1]);
     std::string txt_path = argv[2];
+    size_t parallel = std::stoull(argv[3]);
 
 
-    FlajoletMartin fm(m);
+    FlajoletMartin fm(m, parallel);
 
     // string txt_path = "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/dataset/cleaned/NCVoters/ncvoter_all.txt";
     std::ifstream file(txt_path);
@@ -266,7 +158,7 @@ int main(int argc, char* argv[]) {
     }
 
     auto start = std::chrono::high_resolution_clock::now();
-    fm.addBatch(strings);
+    size_t parallel = fm.addBatch(strings);
     auto end = std::chrono::high_resolution_clock::now();
 
     std::chrono::duration<double> duration = end - start;
@@ -279,5 +171,6 @@ int main(int argc, char* argv[]) {
     size_t mem = getMemoryUsage();
     size_t vec_mem = calculateMemoryUsage(strings);
     std::cout << "Memory usage: " << (mem - vec_mem) / (1024.0 * 1024.0) << " MB\n";
+    std::cout << "Number of threads used: " << parallel << "\n";
     return 0;
 }
