@@ -54,6 +54,7 @@
         "forward_list": "cpp",
         "cassert": "cpp",
         "thread": "cpp",
-        "functional": "cpp"
+        "functional": "cpp",
+        "chrono": "cpp"
     }
 }

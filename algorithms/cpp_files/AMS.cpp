@@ -22,10 +22,10 @@ using namespace std;
 
 class AMS {
 public:
-    explicit AMS(size_t m, string hash_type)
+    explicit AMS(size_t m, string hash_type, int seed)
         : m_(m), seeds_(m), Z_(m, 0) {
         assert(m > 0);
-        initSeeds();
+        initSeeds(seed);
         initHash(hash_type);
     }
 
@@ -37,7 +37,7 @@ public:
         for (const auto& item : items) {
             for (size_t i = 0; i < m_; ++i) {
                 uint64_t h = hashWithSeed(item, seeds_[i]);
-                uint32_t r = rank(h);
+                uint32_t r = TrailingZeroes(h);
     
                 Z_[i] = std::max(r, Z_[i]);
             }
@@ -45,12 +45,12 @@ public:
     }
 
     double estimate() const {
-        double average = 0;
+        double Z_sum = 0;
         for (double z : Z_) {
-            average += z;
+            Z_sum += z;
         }
-        average /= m_;
-        return std::pow(2.0, average);
+        double Z_avg = Z_sum / static_cast<double>(m_);
+        return std::pow(2.0, Z_avg);
     }
 
 private:
@@ -59,8 +59,8 @@ private:
     std::vector<uint32_t> Z_;  // Accumulators per sketch
     std::function<size_t(const std::string&, uint64_t)> hashWithSeed;
 
-    void initSeeds() {
-        std::mt19937_64 rng(424242);
+    void initSeeds(int seed) {
+        std::mt19937_64 rng(seed);
         std::uniform_int_distribution<uint64_t> dist;
         for (auto& s : seeds_) {
             s = dist(rng);
@@ -84,9 +84,11 @@ private:
         }
     }
 
-    static uint32_t rank(size_t x) {
-        return x ? __builtin_ctzll(x) : 64;
+    // least significant 1, that is number of trailing zeros
+    uint32_t TrailingZeroes(size_t x) {
+        return x ? __builtin_ctzll(x): 64;
     }
+
 
     static size_t murmurhash2(const std::string& s, uint64_t seed) {
         MurmurHash2_64 hasher;
@@ -131,16 +133,17 @@ size_t calculateMemoryUsage(const std::vector<std::string>& vec) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 4) {
-        std::cerr << "Usage: " << argv[0] << " <num_registers> <hash_type> <input_path>\n";
+    if (argc != 5) {
+        std::cerr << "Usage: " << argv[0] << "<num_registers> <hash_type> <seed> <data_path>\n";
         return 1;
     }
 
     size_t m = std::stoull(argv[1]);
     std::string hash_type = argv[2];
-    std::string txt_path = argv[3];
+    int seed = std::stoi(argv[3]);
+    std::string txt_path = argv[4];
 
-    AMS ams(m, hash_type);
+    AMS ams(m, hash_type, seed);
 
     
     std::ifstream file(txt_path);

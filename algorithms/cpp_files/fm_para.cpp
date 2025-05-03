@@ -13,15 +13,20 @@
 #include <mach/mach.h>
 #include <iomanip>
 #include <thread>
+#include "hash/LinearHash.hpp"
+#include "hash/MurmurHash2.hpp"
+#include "hash/FNV.hpp"
+#include <functional>
 
 using namespace std;
 
 class FlajoletMartin {
 public:
-    explicit FlajoletMartin(size_t m, size_t parallel)
+    explicit FlajoletMartin(size_t m, string hash_type, size_t parallel, int seed)
         : m_(m), seeds_(m), parallel(parallel), bitmaps_(m, 0) {
         assert(m > 0);
-        initSeeds();
+        initSeeds(seed);
+        initHash(hash_type);
     }
 
     void add(const std::string& item) {
@@ -43,10 +48,10 @@ public:
             for (size_t i = start; i < end; ++i) {
                 for (const auto& item : items) {
                     size_t h = hashWithSeed(item, seeds_[i]);
-                    uint32_t r = rank(h);
+                    uint32_t r = TrailingZeroes(h);
+
                     if (r < 64) {
-                        uint64_t mask = 1ULL << r;
-                        bitmaps_[i] |= mask;  // No race: i is thread-private
+                        bitmaps_[i] |= (1ULL << r);  // No race: i is thread-private
                     }
                 }
             }
@@ -69,41 +74,76 @@ public:
     }
 
     double estimate() const {
-        double Z = 0.0;
+        double R_sum = 0;
         for (uint64_t bitmap : bitmaps_) {
-            uint32_t R = firstZeroBit(bitmap);
-            Z += std::pow(2.0, R);
+            uint32_t R = TrailingOnes(bitmap);
+            R_sum += R;
         }
-        return Z / m_;
+        double R_avg = R_sum / static_cast<double>(m_);
+        return std::pow(2.0, R_avg) / PHI;
     }
 
 private:
+    static constexpr double PHI = 0.77351;
     size_t m_;
     std::vector<uint64_t> seeds_;
     std::vector<uint64_t> bitmaps_;
     size_t parallel;
+    std::function<size_t(const std::string&, uint64_t)> hashWithSeed;
 
-    void initSeeds() {
-        std::mt19937_64 rng(1337);
+    void initSeeds(int seed) {
+        std::mt19937_64 rng(seed);
         std::uniform_int_distribution<uint64_t> dist;
         for (auto& s : seeds_) {
             s = dist(rng);
         }
     }
 
-    static uint32_t rank(size_t x) {
-        return x ? __builtin_ctzll(x) : 64;
+
+    // least significant 1, that is number of trailing zeros
+    uint32_t TrailingZeroes(size_t x) {
+        return x ? __builtin_ctzll(x): 64;
     }
 
-    static uint32_t firstZeroBit(uint64_t bitmap) {
-        for (uint32_t i = 0; i < 64; ++i) {
+    // least significant 0, that is number of trailing ones
+    static uint32_t TrailingOnes(uint64_t bitmap) {
+        for (uint32_t i = 0; i < 64; ++i) {    
             if ((bitmap & (1ULL << i)) == 0)
                 return i;
         }
         return 64;
     }
 
-    static size_t hashWithSeed(const std::string& s, uint64_t seed) {
+    // Initialize based on choice parameter (0–3)
+    void initHash(string hash_type) {
+        if (hash_type == "murmurhash2") {
+            hashWithSeed = &FlajoletMartin::murmurhash2;
+            cout << "Using self-implemented MurmurHash2" << endl;
+        } else if (hash_type == "fnv1a") {
+            hashWithSeed = &FlajoletMartin::fnv1a;
+            cout << "Using self-implemented fnv1a" << endl;
+        } else if (hash_type == "linearhash") {
+            hashWithSeed = &FlajoletMartin::linearhash;
+            cout << "Using self-implemented linearhash" << endl;
+        } else {
+            hashWithSeed = &FlajoletMartin::murmurhash_cpp;
+            cout << "Using C++ MurmurHash2" << endl;
+        }
+    }
+
+    static size_t murmurhash2(const std::string& s, uint64_t seed) {
+        MurmurHash2_64 hasher;
+        return hasher(std::to_string(seed) + s);
+    }
+    static size_t fnv1a(const std::string& s, uint64_t seed) {
+        FNV1aHash64 hasher;
+        return hasher(std::to_string(seed) + s);
+    }
+    static size_t linearhash(const std::string& s, uint64_t seed) {
+        LinearHash hasher;
+        return hasher(std::to_string(seed) + s);
+    }
+    static size_t murmurhash_cpp(const std::string& s, uint64_t seed) {
         std::hash<std::string> hasher;
         return hasher(std::to_string(seed) + s);
     }
@@ -136,17 +176,19 @@ size_t calculateMemoryUsage(const std::vector<std::string>& vec) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 4) {
-        std::cerr << "Usage: " << argv[0] << " <num_registers> <data_string>\n";
+    if (argc != 6) {
+        std::cerr << "Usage: " << argv[0] << " <num_registers> <hash_type> <parallel_size> <seed> <data_path>\n";
         return 1;
     }
 
     size_t m = std::stoull(argv[1]);
-    std::string txt_path = argv[2];
+    std::string hash_type = argv[2];
     size_t parallel = std::stoull(argv[3]);
+    int seed = std::stoi(argv[4]);
+    std::string txt_path = argv[5];
+    
 
-
-    FlajoletMartin fm(m, parallel);
+    FlajoletMartin fm(m, hash_type, parallel, seed);
 
     // string txt_path = "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/dataset/cleaned/NCVoters/ncvoter_all.txt";
     std::ifstream file(txt_path);
@@ -158,7 +200,7 @@ int main(int argc, char* argv[]) {
     }
 
     auto start = std::chrono::high_resolution_clock::now();
-    size_t parallel = fm.addBatch(strings);
+    parallel = fm.addBatch(strings);
     auto end = std::chrono::high_resolution_clock::now();
 
     std::chrono::duration<double> duration = end - start;

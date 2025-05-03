@@ -22,10 +22,10 @@ using namespace std;
 
 class FlajoletMartin {
 public:
-    explicit FlajoletMartin(size_t m, string hash_type)
+    explicit FlajoletMartin(size_t m, string hash_type, int seed)
         : m_(m), seeds_(m), bitmaps_(m, 0) {
         assert(m > 0);
-        initSeeds();
+        initSeeds(seed);
         initHash(hash_type);
     }
 
@@ -37,7 +37,7 @@ public:
         for (const auto& it : items) {
             for (size_t i = 0; i < m_; ++i) {
                 size_t h = hashWithSeed(it, seeds_[i]);
-                uint32_t r = rank(h);
+                uint32_t r = TrailingZeroes(h); // 1000, return 3
                 
                 if (r < 64) {  // Cap to bitmap size
                     bitmaps_[i] |= (1ULL << r);
@@ -47,22 +47,24 @@ public:
     }
 
     double estimate() const {
-        double Z = 0.0;
+        double R_sum = 0;
         for (uint64_t bitmap : bitmaps_) {
-            uint32_t R = firstZeroBit(bitmap);
-            Z += std::pow(2.0, R);
+            uint32_t R = TrailingOnes(bitmap);
+            R_sum += R;
         }
-        return Z / m_;
+        double R_avg = R_sum / static_cast<double>(m_);
+        return std::pow(2.0, R_avg) / PHI;
     }
 
 private:
+    static constexpr double PHI = 0.77351;
     size_t m_;
     std::vector<uint64_t> seeds_;
     std::vector<uint64_t> bitmaps_;
     std::function<size_t(const std::string&, uint64_t)> hashWithSeed;
 
-    void initSeeds() {
-        std::mt19937_64 rng(1337);
+    void initSeeds(int seed) {
+        std::mt19937_64 rng(seed);
         std::uniform_int_distribution<uint64_t> dist;
         for (auto& s : seeds_) {
             s = dist(rng);
@@ -105,22 +107,20 @@ private:
     }
 
 
-    static uint32_t rank(size_t x) {
-        return x ? __builtin_ctzll(x) : 64;
+    // least significant 1, that is number of trailing zeros
+    uint32_t TrailingZeroes(size_t x) {
+        return x ? __builtin_ctzll(x): 64;
     }
 
-    static uint32_t firstZeroBit(uint64_t bitmap) {
-        for (uint32_t i = 0; i < 64; ++i) {
+    // least significant 0, that is number of trailing ones
+    static uint32_t TrailingOnes(uint64_t bitmap) {
+        for (uint32_t i = 0; i < 64; ++i) {    
             if ((bitmap & (1ULL << i)) == 0)
                 return i;
         }
         return 64;
     }
 
-    static size_t hashWithSeed(const std::string& s, uint64_t seed) {
-        std::hash<std::string> hasher;
-        return hasher(std::to_string(seed) + s);
-    }
 };
 
 
@@ -148,18 +148,19 @@ size_t calculateMemoryUsage(const std::vector<std::string>& vec) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 4) {
-        std::cerr << "Usage: " << argv[0] << " <num_registers> <data_string>\n";
+
+    if (argc != 5) {
+        std::cerr << "Usage: " << argv[0] << " <num_registers> <hash_type> <seed> <data_path>\n";
         return 1;
     }
 
     size_t m = std::stoull(argv[1]);
     std::string hash_type = argv[2];
-    std::string txt_path = argv[3];
+    int seed = std::stoi(argv[3]);
+    std::string txt_path = argv[4];
 
 
-    FlajoletMartin fm(m, hash_type);
-
+    FlajoletMartin fm(m, hash_type, seed);
 
     // string txt_path = "/Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/dataset/cleaned/NCVoters/ncvoter_all.txt";
     std::ifstream file(txt_path);

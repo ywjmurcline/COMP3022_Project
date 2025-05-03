@@ -1,0 +1,1 @@
+./AMS 64 cpp_hash 100 /Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/dataset/cleaned/NCVoters_chunk/ncvoter_1_100.txt
