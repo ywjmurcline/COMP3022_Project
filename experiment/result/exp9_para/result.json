@@ -1,0 +1,174 @@
+{
+  "AMS": {
+    "1": {
+      "FM addBatch time": 39.239707,
+      "Estimated cardinality": 4239976.976044,
+      "Memory usage": 12.159925,
+      "Threads used": 1
+    },
+    "2": {
+      "FM addBatch time": 20.532236,
+      "Estimated cardinality": 4239976.976044,
+      "Memory usage": 12.11205,
+      "Threads used": 2
+    },
+    "3": {
+      "FM addBatch time": 14.501693,
+      "Estimated cardinality": 4239976.976044,
+      "Memory usage": 12.11305,
+      "Threads used": 3
+    },
+    "4": {
+      "FM addBatch time": 10.497031,
+      "Estimated cardinality": 4239976.976044,
+      "Memory usage": 12.1443,
+      "Threads used": 4
+    },
+    "5": {
+      "FM addBatch time": 8.920099,
+      "Estimated cardinality": 4239976.976044,
+      "Memory usage": 12.0193,
+      "Threads used": 5
+    },
+    "6": {
+      "FM addBatch time": 9.269298,
+      "Estimated cardinality": 4239976.976044,
+      "Memory usage": 12.11305,
+      "Threads used": 6
+    },
+    "7": {
+      "FM addBatch time": 9.384368,
+      "Estimated cardinality": 4239976.976044,
+      "Memory usage": 12.11305,
+      "Threads used": 7
+    },
+    "8": {
+      "FM addBatch time": 9.258729,
+      "Estimated cardinality": 4239976.976044,
+      "Memory usage": 12.0818,
+      "Threads used": 8
+    },
+    "9": {
+      "FM addBatch time": 9.386144,
+      "Estimated cardinality": 4239976.976044,
+      "Memory usage": 12.05055,
+      "Threads used": 9
+    },
+    "10": {
+      "FM addBatch time": 9.601405,
+      "Estimated cardinality": 4239976.976044,
+      "Memory usage": 12.11305,
+      "Threads used": 10
+    },
+    "11": {
+      "FM addBatch time": 9.333878,
+      "Estimated cardinality": 4239976.976044,
+      "Memory usage": 12.11305,
+      "Threads used": 11
+    },
+    "12": {
+      "FM addBatch time": 9.27741,
+      "Estimated cardinality": 4239976.976044,
+      "Memory usage": 12.11305,
+      "Threads used": 12
+    },
+    "13": {
+      "FM addBatch time": 10.530067,
+      "Estimated cardinality": 4239976.976044,
+      "Memory usage": 12.11305,
+      "Threads used": 13
+    },
+    "14": {
+      "FM addBatch time": 10.418413,
+      "Estimated cardinality": 4239976.976044,
+      "Memory usage": 12.0818,
+      "Threads used": 14
+    }
+  },
+  "FM": {
+    "1": {
+      "FM addBatch time": 39.101044,
+      "Estimated cardinality": 3516010.996258,
+      "Memory usage": 12.128675,
+      "Threads used": 1
+    },
+    "2": {
+      "FM addBatch time": 19.963738,
+      "Estimated cardinality": 3516010.996258,
+      "Memory usage": 12.1443,
+      "Threads used": 2
+    },
+    "3": {
+      "FM addBatch time": 13.707901,
+      "Estimated cardinality": 3516010.996258,
+      "Memory usage": 12.11305,
+      "Threads used": 3
+    },
+    "4": {
+      "FM addBatch time": 10.050978,
+      "Estimated cardinality": 3516010.996258,
+      "Memory usage": 12.11305,
+      "Threads used": 4
+    },
+    "5": {
+      "FM addBatch time": 8.371127,
+      "Estimated cardinality": 3516010.996258,
+      "Memory usage": 12.11305,
+      "Threads used": 5
+    },
+    "6": {
+      "FM addBatch time": 8.13487,
+      "Estimated cardinality": 3516010.996258,
+      "Memory usage": 12.11305,
+      "Threads used": 6
+    },
+    "7": {
+      "FM addBatch time": 7.489261,
+      "Estimated cardinality": 3516010.996258,
+      "Memory usage": 12.0818,
+      "Threads used": 7
+    },
+    "8": {
+      "FM addBatch time": 6.768472,
+      "Estimated cardinality": 3516010.996258,
+      "Memory usage": 12.17555,
+      "Threads used": 8
+    },
+    "9": {
+      "FM addBatch time": 6.38035,
+      "Estimated cardinality": 3516010.996258,
+      "Memory usage": 12.17555,
+      "Threads used": 9
+    },
+    "10": {
+      "FM addBatch time": 6.082735,
+      "Estimated cardinality": 3516010.996258,
+      "Memory usage": 12.11305,
+      "Threads used": 10
+    },
+    "11": {
+      "FM addBatch time": 5.955605,
+      "Estimated cardinality": 3516010.996258,
+      "Memory usage": 12.0818,
+      "Threads used": 11
+    },
+    "12": {
+      "FM addBatch time": 5.699483,
+      "Estimated cardinality": 3516010.996258,
+      "Memory usage": 12.11305,
+      "Threads used": 12
+    },
+    "13": {
+      "FM addBatch time": 5.893665,
+      "Estimated cardinality": 3516010.996258,
+      "Memory usage": 12.1443,
+      "Threads used": 13
+    },
+    "14": {
+      "FM addBatch time": 5.728465,
+      "Estimated cardinality": 3516010.996258,
+      "Memory usage": 12.0818,
+      "Threads used": 14
+    }
+  }
+}

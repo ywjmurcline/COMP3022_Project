@@ -21,11 +21,11 @@ using namespace std;
 
 class PCSA {
 public:
-    explicit PCSA(size_t m, std::string hash_type, int seed)
-        : m_(m), log2m_(std::log2(m_)), bitmaps_(m, 0) {
+    explicit PCSA(size_t m, std::string hash_type1, std::string hash_type2, int seed)
+        : m_(m), log2m_(std::log2(m_)), bitmaps_(m, 0), bucket_count_(m, 0){
         assert(m > 0); // m must be power of 2
         initSeeds(seed);
-        initHash(hash_type);
+        initHash(hash_type1, hash_type2);
     }
 
     void add(const std::string& item) {
@@ -34,14 +34,18 @@ public:
 
     void addBatch(const std::vector<std::string>& items) {
         for (const auto& item : items) {
-            size_t h = hash(item, seed_);
-            size_t idx = h >> (64 - log2m_); // use top bits to choose bitmap
+            // use first hash function to get the index
+            size_t h1 = hash1(item, seed_);
+            size_t idx = h1 >> (64 - log2m_); // use top bits to choose bitmap
 
-            size_t remaining = h & ((1ULL << (64 - log2m_)) - 1);
+            // use second hash function to get the remaining bits
+            size_t h2 = hash2(item, seed_);
+            size_t remaining = h2 & ((1ULL << (64 - log2m_)) - 1);
 
             uint32_t r = TrailingZeroes(remaining);
             if (r < 64) {
                 bitmaps_[idx] |= (1ULL << r);
+                bucket_count_[idx] += 1; // Increment the count for this bucket
             }
         }
     }
@@ -57,13 +61,20 @@ public:
         return (m_ / PHI) * std::pow(2.0, R_avg);
     }
 
+    std::vector<int> get_bucket_count() {
+        return bucket_count_;
+    }
+
+
 private:
     static constexpr double PHI = 0.77351;
     size_t m_;
     uint32_t log2m_;
     uint64_t seed_;
     std::vector<uint64_t> bitmaps_;
-    std::function<size_t(const std::string&, uint64_t)> hash;
+    std::function<size_t(const std::string&, uint64_t)> hash1;
+    std::function<size_t(const std::string&, uint64_t)> hash2;
+    std::vector<int> bucket_count_;
     
 
     void initSeeds(int seed) {
@@ -72,18 +83,32 @@ private:
 
 
     // Initialize based on choice parameter (0–3)
-    void initHash(string hash_type) {
-        if (hash_type == "murmurhash2") {
-            hash = &PCSA::murmurhash2;
+    void initHash(string hash_type1, string hash_type2) {
+        if (hash_type1 == "murmurhash2") {
+            hash1 = &PCSA::murmurhash2;
             cout << "Using self-implemented MurmurHash2" << endl;
-        } else if (hash_type == "fnv1a") {
-            hash = &PCSA::fnv1a;
+        } else if (hash_type1 == "fnv1a") {
+            hash1 = &PCSA::fnv1a;
             cout << "Using self-implemented fnv1a" << endl;
-        } else if (hash_type == "linearhash") {
-            hash = &PCSA::linearhash;
+        } else if (hash_type1 == "linearhash") {
+            hash1 = &PCSA::linearhash;
             cout << "Using self-implemented linearhash" << endl;
         } else {
-            hash = &PCSA::murmurhash_cpp;
+            hash1 = &PCSA::murmurhash_cpp;
+            cout << "Using C++ MurmurHash2" << endl;
+        }
+
+        if (hash_type2 == "murmurhash2") {
+            hash2 = &PCSA::murmurhash2;
+            cout << "Using self-implemented MurmurHash2" << endl;
+        } else if (hash_type2 == "fnv1a") {
+            hash2 = &PCSA::fnv1a;
+            cout << "Using self-implemented fnv1a" << endl;
+        } else if (hash_type2 == "linearhash") {
+            hash2 = &PCSA::linearhash;
+            cout << "Using self-implemented linearhash" << endl;
+        } else {
+            hash2 = &PCSA::murmurhash_cpp;
             cout << "Using C++ MurmurHash2" << endl;
         }
     }
@@ -146,18 +171,19 @@ size_t getMemoryUsage() {
 
 
 int main(int argc, char* argv[]) {
-    if (argc != 5) {
+    if (argc != 6) {
         std::cerr << "Usage: " << argv[0] << " <num_registers> <hash_type> <seed> <data_path>\n";
         return 1;
     }
 
     size_t m = std::stoull(argv[1]);
-    std::string hash_type = argv[2];
-    int seed = std::stoi(argv[3]);
-    std::string txt_path = argv[4];
+    std::string hash_type1 = argv[2];
+    std::string hash_type2 = argv[3];
+    int seed = std::stoi(argv[4]);
+    std::string txt_path = argv[5];
     
 
-    PCSA pcsa(m, hash_type, seed);
+    PCSA pcsa(m, hash_type1, hash_type2, seed);
 
     std::ifstream file(txt_path);
     std::vector<std::string> strings;
@@ -180,5 +206,12 @@ int main(int argc, char* argv[]) {
     size_t mem = getMemoryUsage();
     size_t vec_mem = calculateMemoryUsage(strings);
     std::cout << "Memory usage: " << (mem - vec_mem) / (1024.0 * 1024.0) << " MB\n";
+
+    std::vector<int> bucket_count = pcsa.get_bucket_count();
+    std::cout << "Bucket counts: ";
+    for (size_t i = 0; i < bucket_count.size(); ++i) {
+        std::cout << bucket_count[i] << " ";
+    }
+    std::cout << std::endl;
     return 0;
 }

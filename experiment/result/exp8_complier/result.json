@@ -1,0 +1,54 @@
+{
+  "PCSA": {
+    "O0": {
+      "FM addBatch time": 0.785456,
+      "Estimated cardinality": 4181265.293178,
+      "Memory usage": 17.605066,
+      "Threads used": null
+    },
+    "O1": {
+      "FM addBatch time": 0.109187,
+      "Estimated cardinality": 4181265.293178,
+      "Memory usage": 17.542566,
+      "Threads used": null
+    },
+    "O2": {
+      "FM addBatch time": 0.106819,
+      "Estimated cardinality": 4181265.293178,
+      "Memory usage": 17.511316,
+      "Threads used": null
+    },
+    "O3": {
+      "FM addBatch time": 0.106521,
+      "Estimated cardinality": 4181265.293178,
+      "Memory usage": 17.573816,
+      "Threads used": null
+    }
+  },
+  "hyperloglog": {
+    "O0": {
+      "FM addBatch time": 0.818125,
+      "Estimated cardinality": 3983819.215521,
+      "Memory usage": 17.636316,
+      "Threads used": null
+    },
+    "O1": {
+      "FM addBatch time": 0.112438,
+      "Estimated cardinality": 1.007895,
+      "Memory usage": 17.542566,
+      "Threads used": null
+    },
+    "O2": {
+      "FM addBatch time": 0.107883,
+      "Estimated cardinality": 1.007895,
+      "Memory usage": 17.511316,
+      "Threads used": null
+    },
+    "O3": {
+      "FM addBatch time": 0.112309,
+      "Estimated cardinality": 1.007895,
+      "Memory usage": 17.511316,
+      "Threads used": null
+    }
+  }
+}

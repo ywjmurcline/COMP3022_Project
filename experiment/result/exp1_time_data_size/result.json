@@ -1,0 +1,162 @@
+{
+  "64-1359916": {
+    "fm": {
+      "FM addBatch time": 9.313856,
+      "Estimated cardinality": 979549.010263,
+      "Memory usage": 4.07678,
+      "Threads used": null
+    },
+    "PCSA": {
+      "FM addBatch time": 0.124801,
+      "Estimated cardinality": 832668.748063,
+      "Memory usage": 3.82678,
+      "Threads used": null
+    },
+    "AMS": {
+      "FM addBatch time": 9.735165,
+      "Estimated cardinality": 1302182.297153,
+      "Memory usage": 4.10803,
+      "Threads used": null
+    },
+    "loglog": {
+      "FM addBatch time": 0.128909,
+      "Estimated cardinality": 1604845.237826,
+      "Memory usage": 3.92053,
+      "Threads used": null
+    },
+    "hyperloglog": {
+      "FM addBatch time": 0.130994,
+      "Estimated cardinality": 691760.975208,
+      "Memory usage": 3.82678,
+      "Threads used": null
+    }
+  },
+  "64-3065243": {
+    "fm": {
+      "FM addBatch time": 21.080741,
+      "Estimated cardinality": 1777148.922879,
+      "Memory usage": 7.515947,
+      "Threads used": null
+    },
+    "PCSA": {
+      "FM addBatch time": 0.284747,
+      "Estimated cardinality": 1816063.417023,
+      "Memory usage": 7.109697,
+      "Threads used": null
+    },
+    "AMS": {
+      "FM addBatch time": 21.856206,
+      "Estimated cardinality": 2337038.386008,
+      "Memory usage": 7.453447,
+      "Threads used": null
+    },
+    "loglog": {
+      "FM addBatch time": 0.299707,
+      "Estimated cardinality": 4029383.65914,
+      "Memory usage": 7.078447,
+      "Threads used": null
+    },
+    "hyperloglog": {
+      "FM addBatch time": 0.308397,
+      "Estimated cardinality": 1458396.4621,
+      "Memory usage": 7.109697,
+      "Threads used": null
+    }
+  },
+  "64-5487661": {
+    "fm": {
+      "FM addBatch time": 38.465532,
+      "Estimated cardinality": 3516010.996258,
+      "Memory usage": 12.066175,
+      "Threads used": null
+    },
+    "PCSA": {
+      "FM addBatch time": 0.520998,
+      "Estimated cardinality": 3155108.421397,
+      "Memory usage": 11.691175,
+      "Threads used": null
+    },
+    "AMS": {
+      "FM addBatch time": 39.729112,
+      "Estimated cardinality": 4239976.976044,
+      "Memory usage": 12.066175,
+      "Threads used": null
+    },
+    "loglog": {
+      "FM addBatch time": 0.54496,
+      "Estimated cardinality": 8146521.540833,
+      "Memory usage": 11.691175,
+      "Threads used": null
+    },
+    "hyperloglog": {
+      "FM addBatch time": 0.56037,
+      "Estimated cardinality": 2730447.713844,
+      "Memory usage": 11.691175,
+      "Threads used": null
+    }
+  },
+  "64-6737002": {
+    "fm": {
+      "FM addBatch time": 48.39687,
+      "Estimated cardinality": 3516010.996258,
+      "Memory usage": 14.478539,
+      "Threads used": null
+    },
+    "PCSA": {
+      "FM addBatch time": 0.649709,
+      "Estimated cardinality": 3155108.421397,
+      "Memory usage": 14.072289,
+      "Threads used": null
+    },
+    "AMS": {
+      "FM addBatch time": 49.056849,
+      "Estimated cardinality": 4239976.976044,
+      "Memory usage": 14.416039,
+      "Threads used": null
+    },
+    "loglog": {
+      "FM addBatch time": 0.702713,
+      "Estimated cardinality": 8507198.863072,
+      "Memory usage": 14.103539,
+      "Threads used": null
+    },
+    "hyperloglog": {
+      "FM addBatch time": 0.680789,
+      "Estimated cardinality": 3053529.017663,
+      "Memory usage": 14.041039,
+      "Threads used": null
+    }
+  },
+  "64-8569683": {
+    "fm": {
+      "FM addBatch time": 59.033725,
+      "Estimated cardinality": 4047593.991288,
+      "Memory usage": 17.948816,
+      "Threads used": null
+    },
+    "PCSA": {
+      "FM addBatch time": 0.822797,
+      "Estimated cardinality": 4181265.293178,
+      "Memory usage": 17.573816,
+      "Threads used": null
+    },
+    "AMS": {
+      "FM addBatch time": 61.653821,
+      "Estimated cardinality": 4828437.591949,
+      "Memory usage": 17.980066,
+      "Threads used": null
+    },
+    "loglog": {
+      "FM addBatch time": 0.860699,
+      "Estimated cardinality": 13553177.09861,
+      "Memory usage": 17.605066,
+      "Threads used": null
+    },
+    "hyperloglog": {
+      "FM addBatch time": 0.871948,
+      "Estimated cardinality": 3983819.215521,
+      "Memory usage": 17.573816,
+      "Threads used": null
+    }
+  }
+}

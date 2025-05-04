@@ -1,0 +1,102 @@
+{
+  "64-1359916": {
+    "PCSA": {
+      "FM addBatch time": 0.124548,
+      "Estimated cardinality": 832668.748063,
+      "Memory usage": 3.88928,
+      "Threads used": null
+    },
+    "loglog": {
+      "FM addBatch time": 0.129292,
+      "Estimated cardinality": 1604845.237826,
+      "Memory usage": 3.92053,
+      "Threads used": null
+    },
+    "hyperloglog": {
+      "FM addBatch time": 0.132272,
+      "Estimated cardinality": 691760.975208,
+      "Memory usage": 3.85803,
+      "Threads used": null
+    }
+  },
+  "64-3065243": {
+    "PCSA": {
+      "FM addBatch time": 0.280053,
+      "Estimated cardinality": 1816063.417023,
+      "Memory usage": 7.140947,
+      "Threads used": null
+    },
+    "loglog": {
+      "FM addBatch time": 0.291238,
+      "Estimated cardinality": 4029383.65914,
+      "Memory usage": 7.078447,
+      "Threads used": null
+    },
+    "hyperloglog": {
+      "FM addBatch time": 0.296114,
+      "Estimated cardinality": 1458396.4621,
+      "Memory usage": 7.078447,
+      "Threads used": null
+    }
+  },
+  "64-5487661": {
+    "PCSA": {
+      "FM addBatch time": 0.511054,
+      "Estimated cardinality": 3155108.421397,
+      "Memory usage": 11.722425,
+      "Threads used": null
+    },
+    "loglog": {
+      "FM addBatch time": 0.526027,
+      "Estimated cardinality": 8146521.540833,
+      "Memory usage": 11.722425,
+      "Threads used": null
+    },
+    "hyperloglog": {
+      "FM addBatch time": 0.53099,
+      "Estimated cardinality": 2730447.713844,
+      "Memory usage": 11.659925,
+      "Threads used": null
+    }
+  },
+  "64-6737002": {
+    "PCSA": {
+      "FM addBatch time": 0.615882,
+      "Estimated cardinality": 3155108.421397,
+      "Memory usage": 14.119164,
+      "Threads used": null
+    },
+    "loglog": {
+      "FM addBatch time": 0.645715,
+      "Estimated cardinality": 8507198.863072,
+      "Memory usage": 14.103539,
+      "Threads used": null
+    },
+    "hyperloglog": {
+      "FM addBatch time": 0.649382,
+      "Estimated cardinality": 3053529.017663,
+      "Memory usage": 14.103539,
+      "Threads used": null
+    }
+  },
+  "64-8569683": {
+    "PCSA": {
+      "FM addBatch time": 0.796739,
+      "Estimated cardinality": 4181265.293178,
+      "Memory usage": 17.511316,
+      "Threads used": null
+    },
+    "loglog": {
+      "FM addBatch time": 0.822015,
+      "Estimated cardinality": 13553177.09861,
+      "Memory usage": 17.605066,
+      "Threads used": null
+    },
+    "hyperloglog": {
+      "FM addBatch time": 0.80731,
+      "Estimated cardinality": 3983819.215521,
+      "Memory usage": 17.542566,
+      "Threads used": null
+    }
+  }
+}

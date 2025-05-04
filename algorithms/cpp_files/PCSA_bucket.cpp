@@ -22,7 +22,7 @@ using namespace std;
 class PCSA {
 public:
     explicit PCSA(size_t m, std::string hash_type, int seed)
-        : m_(m), log2m_(std::log2(m_)), bitmaps_(m, 0) {
+        : m_(m), log2m_(std::log2(m_)), bitmaps_(m, 0), bucket_count_(m, 0){
         assert(m > 0); // m must be power of 2
         initSeeds(seed);
         initHash(hash_type);
@@ -42,6 +42,7 @@ public:
             uint32_t r = TrailingZeroes(remaining);
             if (r < 64) {
                 bitmaps_[idx] |= (1ULL << r);
+                bucket_count_[idx] += 1; // Increment the count for this bucket
             }
         }
     }
@@ -57,6 +58,11 @@ public:
         return (m_ / PHI) * std::pow(2.0, R_avg);
     }
 
+    std::vector<int> get_bucket_count() {
+        return bucket_count_;
+    }
+
+
 private:
     static constexpr double PHI = 0.77351;
     size_t m_;
@@ -64,6 +70,7 @@ private:
     uint64_t seed_;
     std::vector<uint64_t> bitmaps_;
     std::function<size_t(const std::string&, uint64_t)> hash;
+    std::vector<int> bucket_count_;
     
 
     void initSeeds(int seed) {
@@ -180,5 +187,12 @@ int main(int argc, char* argv[]) {
     size_t mem = getMemoryUsage();
     size_t vec_mem = calculateMemoryUsage(strings);
     std::cout << "Memory usage: " << (mem - vec_mem) / (1024.0 * 1024.0) << " MB\n";
+
+    std::vector<int> bucket_count = pcsa.get_bucket_count();
+    std::cout << "Bucket counts: ";
+    for (size_t i = 0; i < bucket_count.size(); ++i) {
+        std::cout << bucket_count[i] << " ";
+    }
+    std::cout << std::endl;
     return 0;
 }

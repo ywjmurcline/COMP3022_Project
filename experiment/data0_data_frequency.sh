@@ -7,7 +7,7 @@ python ../visualization/plot_frequency.py ../dataset/cleaned/NCVoters_chunk NCVo
 if [ $? -eq 0 ]; then
     
     # Run script2.py
-    python ../visualization/plot_frequency.py ../dataset/cleaned/IPs_chunk IPs result/data0_data_frequency
+    python visualization/plot_frequency.py ../dataset/cleaned/IPs_chunk IPs result/data0_data_frequency
 else
     echo "plot_frequency.py failed."
     exit 1
