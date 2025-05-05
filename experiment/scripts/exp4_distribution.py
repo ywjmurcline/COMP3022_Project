@@ -11,7 +11,7 @@ DISTINATION = os.path.join(current_dir, "../result/exp4_distribution")
 
 os.makedirs(DISTINATION, exist_ok=True)
 
-RESULT_PATH = os.path.join(DISTINATION, "result.json")
+RESULT_PATH = os.path.join(DISTINATION, "result_temp.json")
 
 if os.path.isfile(RESULT_PATH):
     if input("result exist, re-run will cover the previous result. Still run? (y/n) ").lower() == "y":
@@ -21,27 +21,27 @@ if os.path.isfile(RESULT_PATH):
         exit(0)
 
 executables = [
-    os.path.join(current_dir, "../../algorithms/executable/hyperloglog_bucket_O1"),
+    os.path.join(current_dir, "../../algorithms/executable/hyperloglog_bucket"),
 ]
 
 
 parameter_sets = [
-    (64, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_1.txt")),
-    (64, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_10.txt")),
-    (64, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_1000.txt")),
-    (64, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_100000.txt")),
-    (64, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_1000000.txt")),
-    (64, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_3000000.txt")),
-    (64, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_6000000.txt")),
-    (64, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_10000000.txt")),
-    (128, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_1.txt")),
-    (128, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_10.txt")),
-    (128, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_1000.txt")),
-    (128, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_100000.txt")),
-    (128, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_1000000.txt")),
-    (128, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_3000000.txt")),
-    (128, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_6000000.txt")),
-    (128, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_10000000.txt")),
+    (4, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_1.txt")),
+    (4, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_10.txt")),
+    (4, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_1000.txt")),
+    (4, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_100000.txt")),
+    (4, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_1000000.txt")),
+    (4, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_3000000.txt")),
+    (4, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_6000000.txt")),
+    # (4, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_10000000.txt")),
+    # (128, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_1.txt")),
+    # (128, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_10.txt")),
+    # (128, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_1000.txt")),
+    # (128, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_100000.txt")),
+    # (128, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_1000000.txt")),
+    # (128, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_3000000.txt")),
+    # (128, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_6000000.txt")),
+    # (128, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_10000000.txt")),
     (256, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_1.txt")),
     (256, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_10.txt")),
     (256, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_1000.txt")),
@@ -49,7 +49,7 @@ parameter_sets = [
     (256, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_1000000.txt")),
     (256, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_3000000.txt")),
     (256, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_6000000.txt")),
-    (256, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_10000000.txt")),
+    # (256, "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/IPs_imbalanced_chunk/IPs_chunk_unbalanced_10000000.txt")),
 ]
 
 

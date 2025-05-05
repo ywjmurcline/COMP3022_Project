@@ -24,7 +24,7 @@ executables = [
     os.path.join(current_dir, "../../algorithms/executable/AMS_para_O1"),
     os.path.join(current_dir, "../../algorithms/executable/FM_para_O1"),
     os.path.join(current_dir, "../../algorithms/executable/PCSA_O1"),
-    os.path.join(current_dir, "../../algorithms/executable/hyperloglog_O1"),
+    os.path.join(current_dir, "../../algorithms/executable/hyperloglog"),
     os.path.join(current_dir, "../../algorithms/executable/loglog_O1"),
 ]
 
@@ -66,7 +66,7 @@ for num, text in parameter_sets:
                     )
                     output = completed.stdout.strip().splitlines()
 
-                    # print(output)
+                    print(output)
                     
                     # Initialize parsed values
                     time_val, cardinality_val, memory_val, thread_val = parse_output_std(output)
@@ -76,8 +76,10 @@ for num, text in parameter_sets:
 
                     if exe_name not in results:
                         results[exe_name] = {}
+                    if num not in results[exe_name]:
+                        results[exe_name][num] = {}
 
-                    results[exe_name][i] = {
+                    results[exe_name][num][i] = {
                         "FM addBatch time": time_val,
                         "Estimated cardinality": cardinality_val,
                         "Memory usage": memory_val,
@@ -104,7 +106,7 @@ for num, text in parameter_sets:
                     )
                     output = completed.stdout.strip().splitlines()
 
-                    # print(output)
+                    print(output)
                     
                     # Initialize parsed values
                     time_val, cardinality_val, memory_val, thread_val = parse_output_std(output)
@@ -114,8 +116,10 @@ for num, text in parameter_sets:
 
                     if exe_name not in results:
                         results[exe_name] = {}
+                    if num not in results[exe_name]:
+                        results[exe_name][num] = {}
 
-                    results[exe_name][i] = {
+                    results[exe_name][num][i] = {
                         "FM addBatch time": time_val,
                         "Estimated cardinality": cardinality_val,
                         "Memory usage": memory_val,

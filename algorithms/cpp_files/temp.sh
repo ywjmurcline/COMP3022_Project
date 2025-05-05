@@ -1,2 +1,2 @@
-./hyperloglog_bucket 128 cpp_hash 1337 /Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/dataset/cleaned/NCVoters_chunk/ncvoter_1_60.txt
+./hyperloglog 64 linearhash 1337 /Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/dataset/cleaned/NCVoters_chunk/ncvoter_1_60.txt
 # ./FM_para_O1 64 cpp_hash 0 1337 /Users/lily/Documents/2024-2025_Spring/algorithm_lab/cadinality_estimation/COMP3022_Project/dataset/cleaned/NCVoters_chunk/ncvoter_1_60.txt

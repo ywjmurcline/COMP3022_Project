@@ -11,7 +11,7 @@ DISTINATION = os.path.join(current_dir, "../result/exp6_hash")
 
 os.makedirs(DISTINATION, exist_ok=True)
 
-RESULT_PATH = os.path.join(DISTINATION, "result.json")
+RESULT_PATH = os.path.join(DISTINATION, "result_temp.json")
 
 if os.path.isfile(RESULT_PATH):
     if input("result exist, re-run will cover the previous result. Still run? (y/n) ").lower() == "y":
@@ -24,8 +24,8 @@ executables = [
     os.path.join(current_dir, "../../algorithms/executable/AMS_para_O1"),
     os.path.join(current_dir, "../../algorithms/executable/FM_para_O1"),
     os.path.join(current_dir, "../../algorithms/executable/PCSA_O1"),
-    os.path.join(current_dir, "../../algorithms/executable/hyperloglog_O1"),
-    os.path.join(current_dir, "../../algorithms/executable/loglog_O1"),
+    os.path.join(current_dir, "../../algorithms/executable/hyperloglog"),
+    # os.path.join(current_dir, "../../algorithms/executable/loglog_O1"),
 ]
 
 
@@ -38,7 +38,7 @@ parameter_sets = [
 ]
 results = {}
 
-REPEAT = 20
+REPEAT = 40
 
 
 for num, hash, text in parameter_sets:

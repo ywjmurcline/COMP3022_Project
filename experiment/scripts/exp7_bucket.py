@@ -36,7 +36,7 @@ parameter_sets = [
 
 results = {}
 
-REPEAT = 5
+REPEAT = 10
 
 
 for num, hash, text in parameter_sets:

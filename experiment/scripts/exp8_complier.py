@@ -21,10 +21,10 @@ if os.path.isfile(RESULT_PATH):
         exit(0)
 
 executables = [
-    # os.path.join(current_dir, "../../algorithms/executable/AMS_O0"),
-    # os.path.join(current_dir, "../../algorithms/executable/AMS_O1"),
-    # os.path.join(current_dir, "../../algorithms/executable/AMS_O2"),
-    # os.path.join(current_dir, "../../algorithms/executable/AMS_O3"),
+    os.path.join(current_dir, "../../algorithms/executable/loglog"),
+    os.path.join(current_dir, "../../algorithms/executable/loglog_O1"),
+    os.path.join(current_dir, "../../algorithms/executable/loglog_O2"),
+    os.path.join(current_dir, "../../algorithms/executable/loglog_O3"),
     os.path.join(current_dir, "../../algorithms/executable/PCSA_O0"),
     os.path.join(current_dir, "../../algorithms/executable/PCSA_O1"),
     os.path.join(current_dir, "../../algorithms/executable/PCSA_O2"),
@@ -52,11 +52,15 @@ for num, text in parameter_sets:
 
     for exe in executables:
         exe_name = exe.split("/")[-1]
-        algorithm, opt_level = exe_name.split("_")
-        print(f"running algorithm: {exe_name}")
+        if "_" in exe_name:
+            algorithm, opt_level = exe_name.split("_")
+        else:
+            algorithm = exe_name
+            opt_level = "O0"
+        print(f"running algorithm: {algorithm} {opt_level}")
         try:
             # Run the executable with parameters
-            print(exe, str(num), "cpp_hash", "1337", text)
+            # print(exe, str(num), "cpp_hash", "1337", text) 
             completed = subprocess.run(
                 [exe, str(num), "cpp_hash", "1337", text],
                 check=True,

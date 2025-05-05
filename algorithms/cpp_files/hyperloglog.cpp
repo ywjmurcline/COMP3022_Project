@@ -33,6 +33,7 @@ public:
     void addBatch(const std::vector<std::string>& items) {
         for (const auto& item : items) {
             uint32_t h = hash(item, seed_);
+            // std::cout << "Hash (binary): " << std::bitset<32>(h) << std::endl;
             uint32_t index = h >> (64 - log2m_);   
                                // First b bits
             size_t remaining = h & ((1ULL << (64 - log2m_)) - 1);   

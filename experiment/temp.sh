@@ -1,3 +1,7 @@
-python scripts/exp6_para.py
+python scripts/exp4_distribution.py
 
-python scripts/exp2_accuracy.py
+python scripts/exp6_hash.py
+
+# python scripts/exp7_bucket.py
+
+# python scripts/exp7_bucket2.py

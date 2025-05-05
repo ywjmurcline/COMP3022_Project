@@ -73,7 +73,6 @@ for input_file in input_files:
         extract_third_elements_2(input_file, output_file_path)
 
 
-
 # Profile the folder
 print("Profiling the folder...")
 profile_folder_by_file(DISTINATION)

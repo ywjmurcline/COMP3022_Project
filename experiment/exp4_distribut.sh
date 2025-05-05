@@ -1,3 +1,3 @@
 #!/bin/bash
-python scripts/exp3_memory.py
-python visualization/exp3_memory.py
+python scripts/exp4_distribution.py
+python visualization/exp4_distribution.py
