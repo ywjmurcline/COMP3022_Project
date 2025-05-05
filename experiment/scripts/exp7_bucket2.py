@@ -27,18 +27,20 @@ executables = [
 
 
 parameter_sets = [
+    (64, "murmurhash2", "murmurhash2", os.path.join(current_dir, "../../dataset/cleaned/NCVoters_chunk/ncvoter_1_60.txt")),
     (64, "fnv1a", "murmurhash2", os.path.join(current_dir, "../../dataset/cleaned/NCVoters_chunk/ncvoter_1_60.txt")),
-    (64, "fnv1a", "linearhash", os.path.join(current_dir, "../../dataset/cleaned/NCVoters_chunk/ncvoter_1_60.txt")),
-    (64, "fnv1a", "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/NCVoters_chunk/ncvoter_1_60.txt")),
+    # (64, "fnv1a", "linearhash", os.path.join(current_dir, "../../dataset/cleaned/NCVoters_chunk/ncvoter_1_60.txt")),
+    # (64, "fnv1a", "cpp_hash", os.path.join(current_dir, "../../dataset/cleaned/NCVoters_chunk/ncvoter_1_60.txt")),
     (64, "murmurhash2", "fnv1a", os.path.join(current_dir, "../../dataset/cleaned/NCVoters_chunk/ncvoter_1_60.txt")),
-    (64, "linearhash", "fnv1a", os.path.join(current_dir, "../../dataset/cleaned/NCVoters_chunk/ncvoter_1_60.txt")),
-    (64, "cpp_hash", "fnv1a", os.path.join(current_dir, "../../dataset/cleaned/NCVoters_chunk/ncvoter_1_60.txt")),
+    (64, "fnv1a", "fnv1a", os.path.join(current_dir, "../../dataset/cleaned/NCVoters_chunk/ncvoter_1_60.txt")),
+    # (64, "linearhash", "fnv1a", os.path.join(current_dir, "../../dataset/cleaned/NCVoters_chunk/ncvoter_1_60.txt")),
+    # (64, "cpp_hash", "fnv1a", os.path.join(current_dir, "../../dataset/cleaned/NCVoters_chunk/ncvoter_1_60.txt")),
 ]
 
 
 results = {}
 
-REPEAT = 10
+REPEAT = 40
 
 
 for num, hash1, hash2, text in parameter_sets:

@@ -1,3 +1,4 @@
 #!/bin/bash
-python scripts/exp6_hash.py
-python visualization/exp6_hash.py
+python scripts/exp7_bucket.py
+python scripts/exp7_bucket2.py
+python visualization/exp7_bucket.py
